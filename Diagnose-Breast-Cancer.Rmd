@@ -1,0 +1,23 @@
+---
+title: "Diagnose Breast Cancer"
+authors: "Karen Tafolla" "Scott Ligon"
+date: "4/30/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Gathering and Processing Data
+```{r}
+breastCancerData = read.table("/Users/scottdligon/Desktop/CST464DataMining/Project_2/Risk\ Dataset/risk.txt", header=T)
+names(breastCancerData) <- c("menopaus","agegrp","density","race","Hispanic","bmi","agefirst","nrelbc","brstproc","lastmamm","surgmeno","hrt","invasive","cancer","training","count")
+```
+
+
+```{r}
+
+```
+
+
