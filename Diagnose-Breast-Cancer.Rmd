@@ -1,6 +1,6 @@
 ---
 title: "Diagnose Breast Cancer"
-authors: "Karen Tafolla" "Scott Ligon"
+authors: "Scott Ligon" "Karen Tafolla"
 date: "4/30/2017"
 output: html_document
 ---
@@ -9,15 +9,24 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-##Gathering and Processing Data
+## Objective
+We will use mammogram screenings from 2,392,998 women in order to predict whether the patient is in risk of breast cancer. 
+
+Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at: http://breastscreening.cancer.gov/.
+
+## Gathering and Processing Data
+
+
 ```{r}
-breastCancerData = read.table("/Users/scottdligon/Desktop/CST464DataMining/Project_2/Risk\ Dataset/risk.txt", header=T)
-names(breastCancerData) <- c("menopaus","agegrp","density","race","Hispanic","bmi","agefirst","nrelbc","brstproc","lastmamm","surgmeno","hrt","invasive","cancer","training","count")
+mammogram = read.csv("risk.csv")
+names(mammogram) <- c("menopaus","agegrp","density","race","Hispanic","bmi","agefirst","nrelbc","brstproc","lastmamm","surgmeno","hrt","invasive","cancer","training","count")
+
+sum(is.na(mammogram))
 ```
 
 
 ```{r}
-
+summary(mammogram)
 ```
 
 
