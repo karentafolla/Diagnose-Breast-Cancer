@@ -18,7 +18,7 @@ Each mammogram screening includes the following features:
   
   + Menopause
   + Age Group
-  + Brest Density
+  + Breast Density
   + Race
   + Hispanic
   + Body Mass Index
@@ -48,7 +48,7 @@ mammogram$race = factor(mammogram$race, levels = c(1,2,3,4,5,9), labels = c("whi
 
 mammogram$bmi = factor(mammogram$bmi, levels = c(1,2,3,4,9), labels = c("10-24.99", "25-29.99", "30-34.99", "35 or more","unknown"))
 
-mammogram$breast.density = factor(mammogram$breast.density, levels = c(1,2,3,4,9), labels = c("fat","scattered", "dense", "extremely dense", "differnt measurement"))
+mammogram$breast.density = factor(mammogram$breast.density, levels = c(1,2,3,4,9), labels = c("fat","scattered", "dense", "extremely dense", "different measurement"))
 
 sum(mammogram$race == "unknown")
 sum(mammogram$bmi == "unknown")
