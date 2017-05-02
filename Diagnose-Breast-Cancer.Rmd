@@ -16,10 +16,10 @@ Data for this study was obtained from the BCSC Data Resource. More information r
 
 ## Gathering and Processing Data
 
-
+We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. 
 ```{r}
 mammogram = read.csv("risk.csv")
-names(mammogram) <- c("menopaus","agegrp","density","race","Hispanic","bmi","agefirst","nrelbc","brstproc","lastmamm","surgmeno","hrt","invasive","cancer","training","count")
+names(mammogram) <- c("menopause","age.group","breast.density","race","hispanic","bmi","age.first.birth","relatives.with.bc","breast.procedure","last.mammogram","surgical.menopause","hormone.therapy","invasive.bc","cancer","training","count")
 
 sum(is.na(mammogram))
 ```
