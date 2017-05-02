@@ -1,7 +1,7 @@
 ---
 title: "Diagnose Breast Cancer"
-authors: "Scott Ligon" "Karen Tafolla"
-date: "4/30/2017"
+author: "Scott Ligon and Karen Tafolla"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
 ---
 
@@ -12,16 +12,52 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Objective
 We will use mammogram screenings from 2,392,998 women in order to predict whether the patient is in risk of breast cancer. 
 
+## Information About Data Set
+
+Each mammogram screening includes the following features:
+  
+  + Menopause
+  + Age Group
+  + Brest Density
+  + Race
+  + Hispanic
+  + Body Mass Index
+  + Age of First Birth
+  + Relatives with Breast Cancer
+  + Breast Procedure
+  + Last Mammogram Result
+  + Surgical Menopause
+  + Hormone Therapy
+  + Invasive breast cancer
+  + Cancer
+  + Training
+  + Count
+
 Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at: http://breastscreening.cancer.gov/.
 
 ## Gathering and Processing Data
-
 We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. 
+
 ```{r}
 mammogram = read.csv("risk.csv")
 names(mammogram) <- c("menopause","age.group","breast.density","race","hispanic","bmi","age.first.birth","relatives.with.bc","breast.procedure","last.mammogram","surgical.menopause","hormone.therapy","invasive.bc","cancer","training","count")
 
-sum(is.na(mammogram))
+mammogram$age.group = factor(mammogram$age.group, levels = c(1,2,3,4,5,6,7,8,9,10), labels = c("35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84"))
+
+mammogram$race = factor(mammogram$race, levels = c(1,2,3,4,5,9), labels = c("white", "Asian/Pacific Islander","black", "Native American", "other/mixed", "unknown"))
+
+mammogram$bmi = factor(mammogram$bmi, levels = c(1,2,3,4,9), labels = c("10-24.99", "25-29.99", "30-34.99", "35 or more","unknown"))
+
+mammogram$breast.density = factor(mammogram$breast.density, levels = c(1,2,3,4,9), labels = c("fat","scattered", "dense", "extremely dense", "differnt measurement"))
+
+sum(mammogram$race == "unknown")
+sum(mammogram$bmi == "unknown")
+sum(mammogram$breast.density == "unknown")
+
+```
+
+```{r}
+str(mammogram)
 ```
 
 
@@ -29,4 +65,21 @@ sum(is.na(mammogram))
 summary(mammogram)
 ```
 
+```{r}
+to explore
 
+mammogram$age.group
+mammogram$breast.density
+mammogram$race
+mammogram$hispanic
+mammogram$hormone.therapy
+
+plot(density(mammogram$hispanic))
+```
+
+Possible 
+## Logistic Regression
+
+## Classification Trees
+
+## Naive Bayes
