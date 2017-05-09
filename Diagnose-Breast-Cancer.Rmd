@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Objective
-We will use mammogram screenings from 2,392,998 women in order to predict whether the patient is in risk of breast cancer. 
+We will use mammogram screenings from 280,659 women in order to predict whether the patient is in risk of breast cancer. The screenigs are from a major city from the following states: Washington, California, New Mexico, Souch Calorina, New Hampshire, Vermont, and Illinois.
 
 ## Information About Data Set
 
@@ -18,7 +18,7 @@ Each mammogram screening includes the following features:
   
   + Menopause
   + Age Group
-  + Brest Density
+  + Breast Density
   + Race
   + Hispanic
   + Body Mass Index
@@ -29,32 +29,99 @@ Each mammogram screening includes the following features:
   + Surgical Menopause
   + Hormone Therapy
   + Invasive breast cancer
-  + Cancer
+  + Cancer: 0 - no cancer 1 - cancer
   + Training
   + Count
 
 Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at: http://breastscreening.cancer.gov/.
 
+## Dependencies
+```{r}
+library(rpart)
+library(rpart.plot)
+library(maptree)
+source("lin-regr-util.R")
+source("class-util.R")
+```
+
+
 ## Gathering and Processing Data
-We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. 
+We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled unknown. For example, under the surgical menopause the original label for a number nine is "unknown or not menopausal". For this feature and others like it we will change the label to not menopausal or the corresponding second label.
 
 ```{r}
 mammogram = read.csv("risk.csv")
 names(mammogram) <- c("menopause","age.group","breast.density","race","hispanic","bmi","age.first.birth","relatives.with.bc","breast.procedure","last.mammogram","surgical.menopause","hormone.therapy","invasive.bc","cancer","training","count")
 
+# Converting from numbers to factors
 mammogram$age.group = factor(mammogram$age.group, levels = c(1,2,3,4,5,6,7,8,9,10), labels = c("35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84"))
 
 mammogram$race = factor(mammogram$race, levels = c(1,2,3,4,5,9), labels = c("white", "Asian/Pacific Islander","black", "Native American", "other/mixed", "unknown"))
 
 mammogram$bmi = factor(mammogram$bmi, levels = c(1,2,3,4,9), labels = c("10-24.99", "25-29.99", "30-34.99", "35 or more","unknown"))
 
-mammogram$breast.density = factor(mammogram$breast.density, levels = c(1,2,3,4,9), labels = c("fat","scattered", "dense", "extremely dense", "differnt measurement"))
+mammogram$breast.density = factor(mammogram$breast.density, levels = c(1,2,3,4,9), labels = c("fat","scattered", "dense", "extremely dense", "different measurement"))
 
-sum(mammogram$race == "unknown")
-sum(mammogram$bmi == "unknown")
-sum(mammogram$breast.density == "unknown")
+mammogram$surgical.menopause = factor(mammogram$surgical.menopause, levels = c(0,1,9), labels = c("natural", "surgical","not menopausal"))
+
+mammogram$hormone.therapy = factor(mammogram$hormone.therapy, levels = c(0,1,9), labels = c("no", "yes","not menopausal"))
+
 
 ```
+
+Below we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summay of the data we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data we decided to to completely remove the bim feature.
+```{r}
+paste("Total Number of rows:", nrow(mammogram))
+
+paste("Menopause:", sum(mammogram$menopause == 9))
+paste("Race:", sum(mammogram$race == "unknown"))
+paste("BMI", sum(mammogram$bmi == "unknown"))
+paste("Age of First Birth:", sum(mammogram$age.first.birth == 9))
+paste("Relatives with Breast Cancer:", sum(mammogram$relatives.with.bc == 9))
+paste("Hispanic:", sum(mammogram$hispanic == 9))
+paste("Last Mammogram:", sum(mammogram$last.mammogram == 9))
+paste("Breast Procedure:", sum(mammogram$breast.procedure == 9))
+
+mammogram$bmi = NULL
+
+```
+
+Even after removing a feature there are still a lot of uncertainty in between the data sets so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menapause, race, age of first birth, relatives with breast cancer, whether their hispanic, last mammograrm, and breast procedure. After removing all the the uncertainty from our dataset our dataset goes from containing 280659 rows to 60895 rows meaning we lost about 78 percent of all our data.
+
+```{r}
+rows = mammogram$hispanic == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$age.first.birth == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$relatives.with.bc == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$menopause == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$last.mammogram == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$breast.procedure == 9
+mammogram = mammogram[!rows, ]
+
+rows = mammogram$race == "unknown"
+mammogram = mammogram[!rows, ]
+
+sum(mammogram$menopause == 9)
+sum(mammogram$race == "unknown")
+sum(mammogram$age.first.birth == 9)
+sum(mammogram$relatives.with.bc == 9)
+sum(mammogram$hispanic == 9)
+sum(mammogram$last.mammogram == 9)
+sum(mammogram$breast.procedure == 9)
+
+paste("Total Number of rows:", nrow(mammogram))
+
+
+```
+
 
 ```{r}
 str(mammogram)
@@ -66,16 +133,47 @@ summary(mammogram)
 ```
 
 ```{r}
-to explore
+#to explore
 
-mammogram$age.group
-mammogram$breast.density
-mammogram$race
-mammogram$hispanic
-mammogram$hormone.therapy
+# mammogram$age.group
+# mammogram$breast.density
+# mammogram$race
+# mammogram$hispanic
+# mammogram$hormone.therapy
 
 plot(density(mammogram$hispanic))
 ```
+
+## Splitting data into training and testing datasets
+
+In order to continue our work on predicting whether a patient has breast cancer or not we will split the data into to testing and training dataset. That way we can train or models and test our results.
+```{r}
+set.seed(132)
+split = split_data(mammogram)
+tr_dat = split[[1]]
+te_dat = split[[2]]
+```
+
+
+Cluster Analysis.
+```{r}
+five = floor(nrow(mam) * .0001)
+
+rows = sample(1:nrow(mam), five) 
+
+dat1 = mam$age_c
+
+dat = scale(dat1)
+
+# you probably want to scale data before this step
+hc = hclust(dist(dat), method="complete")
+# To plot the resulting dendrogram:
+plot(hc)
+# To get a specific number of clusters:
+num_clusts = 3
+clusters = cutree(hc, num_clusts)
+```
+
 
 Possible 
 ## Logistic Regression
