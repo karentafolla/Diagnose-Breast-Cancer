@@ -16,7 +16,7 @@ We will use mammogram screenings from 280,659 women in order to predict whether 
 
 Each mammogram screening includes the following features:
   
-  + Menopause
+  + Menopause:
   + Age Group
   + Breast Density
   + Race
@@ -35,15 +35,19 @@ Each mammogram screening includes the following features:
 
 Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at: http://breastscreening.cancer.gov/.
 
+## Hypothesis
+
+Based on the information listed above we believe that age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer within the past year will be the most influential features to help determine whether a patient has breast cancer or not. 
+
 ## Dependencies
 ```{r}
 library(rpart)
 library(rpart.plot)
 library(maptree)
+library(e1071)
 source("lin-regr-util.R")
 source("class-util.R")
 ```
-
 
 ## Gathering and Processing Data
 We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled unknown. For example, under the surgical menopause the original label for a number nine is "unknown or not menopausal". For this feature and others like it we will change the label to not menopausal or the corresponding second label.
@@ -65,10 +69,11 @@ mammogram$surgical.menopause = factor(mammogram$surgical.menopause, levels = c(0
 
 mammogram$hormone.therapy = factor(mammogram$hormone.therapy, levels = c(0,1,9), labels = c("no", "yes","not menopausal"))
 
+mammogram$cancerAsFactor = factor(mammogram$cancer, levels = c(0,1), labels = c("no cancer", "cancer"))
 
 ```
 
-Below we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summay of the data we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data we decided to to completely remove the bim feature.
+Below we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summay of the data we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data we decided to to completely remove the bim feature. Aside from removing the bmi feature we will remove the count and training features because they do not provide relevant information to our model. The training feature only states where to split the data, we will not follow this since we want our data to be split randomdly. As for the count, it was removed because it's previous combinations of all features and outcomes something that is not necessary for this project.
 ```{r}
 paste("Total Number of rows:", nrow(mammogram))
 
@@ -81,6 +86,8 @@ paste("Hispanic:", sum(mammogram$hispanic == 9))
 paste("Last Mammogram:", sum(mammogram$last.mammogram == 9))
 paste("Breast Procedure:", sum(mammogram$breast.procedure == 9))
 
+mammogram$training = NULL
+mammogram$count = NULL
 mammogram$bmi = NULL
 
 ```
@@ -154,28 +161,30 @@ tr_dat = split[[1]]
 te_dat = split[[2]]
 ```
 
+## Creating Naive Bayes Classification 
 
-Cluster Analysis.
 ```{r}
-five = floor(nrow(mam) * .0001)
+fit1 = naiveBayes(cancerAsFactor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
 
-rows = sample(1:nrow(mam), five) 
-
-dat1 = mam$age_c
-
-dat = scale(dat1)
-
-# you probably want to scale data before this step
-hc = hclust(dist(dat), method="complete")
-# To plot the resulting dendrogram:
-plot(hc)
-# To get a specific number of clusters:
-num_clusts = 3
-clusters = cutree(hc, num_clusts)
+class(fit1)
+summary(fit1)
+print(fit1)
 ```
 
+```{r}
+actual = te_dat$cancerAsFactor
 
-Possible 
+predicted = predict(fit1, newdata = te_dat)
+
+sum(te_dat$cancerAsFactor == "cancer")
+
+
+con_matrix = table(actual, predicted)
+con_matrix
+```
+
+Although typically with Naive Bayes incrementing the number of 
+
 ## Logistic Regression
 
 ## Classification Trees
