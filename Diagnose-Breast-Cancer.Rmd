@@ -16,22 +16,22 @@ We will use mammogram screenings from 280,659 women in order to predict whether 
 
 Each mammogram screening includes the following features:
   
-  + Menopause
-  + Age Group
-  + Breast Density
-  + Race
-  + Hispanic
-  + Body Mass Index
-  + Age of First Birth
-  + Relatives with Breast Cancer
-  + Breast Procedure
-  + Last Mammogram Result
-  + Surgical Menopause
-  + Hormone Therapy
-  + Invasive breast cancer
-  + Cancer: 0 - no cancer 1 - cancer
-  + Training
-  + Count
+  + Menopause: To tell whether a patient has gone through menopause.
+  + Age Group: Patient age ranging from 35-84
+  + Breast Density: Density of a patient's breast.
+  + Race: Category of patients' race.
+  + Hispanic: Classification if a patient is Hispanic.
+  + Body Mass Index: Patient's body mass.
+  + Age of First Birth: Age of a patient's first child birth.
+  + Relatives with Breast Cancer: History if patient has relatives with breast cancer.
+  + Breast Procedure: Records of if a patient has had a prior breast procedure.
+  + Last Mammogram Result: Results of the last mammogram before the index mammogram.
+  + Surgical Menopause: To tell if a woman has gone through a surgical menopause.
+  + Hormone Therapy: To tell if a woman has gone through hromone therapy.
+  + Invasive breast cancer: Diagnosis if invasive breast cancer has been found within a year of index screening mammogram.
+  + Cancer: Diagnosis of invasive or ductal carcinoma within a year of index screening mammogram.
+  + Training: Training data from dataset.
+  + Count: Frequency count of combination of all prior features and their outcomes.
 
 Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at: http://breastscreening.cancer.gov/.
 
@@ -154,30 +154,11 @@ tr_dat = split[[1]]
 te_dat = split[[2]]
 ```
 
-
-Cluster Analysis.
-```{r}
-five = floor(nrow(mam) * .0001)
-
-rows = sample(1:nrow(mam), five) 
-
-dat1 = mam$age_c
-
-dat = scale(dat1)
-
-# you probably want to scale data before this step
-hc = hclust(dist(dat), method="complete")
-# To plot the resulting dendrogram:
-plot(hc)
-# To get a specific number of clusters:
-num_clusts = 3
-clusters = cutree(hc, num_clusts)
-```
-
-
 Possible 
 ## Logistic Regression
 
 ## Classification Trees
+
+fit = pre
 
 ## Naive Bayes
