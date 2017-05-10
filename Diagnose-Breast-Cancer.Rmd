@@ -235,6 +235,25 @@ Although typically with Naive Bayes incrementing the number of
 
 ## Classification Trees
 
-fit = pre
+## Creating Classification Tree
+Creating a classification tree allows data to be organized into different nodes that can visually display predictions of the data. 
+This can make it easier to interpret whether the features we chose in our hypothesis helps predict if a patient is under risk of breast
+cancer.
+
+```{r}
+fit2 = rpart(cancerAsFactor ~ age.group + breast.density + relatives.with.bc + invasive.bc, data = tr_dat, method="class")
+prp(fit2, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer",box.col=c("palegreen")[fit2$frame$val])
+summary(fit2)
+```
+The table below shows the true positives, true, negatives, false positives, and false negatives. The results show how our features 
+provided an almost 100 percent accuracy for our predictions. 
+```{r}
+predicted = predict(fit2, te_dat, type="class")
+actual = te_dat$cancerAsFactor
+table(actual,predicted)
+mean(actual==predicted)
+```
+
+
 
 ## Naive Bayes
