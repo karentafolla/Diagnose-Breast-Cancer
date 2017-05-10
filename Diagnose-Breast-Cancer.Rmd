@@ -20,7 +20,7 @@ Each mammogram screening includes the following features:
   + Age Group: Patient age ranging from 35-84.
   + Breast Density: Density of a patient's breast.
   + Race: Category of patients' race.
-  + Hispanic: Classification if a patient is Hispanic.
+  + Hispanic: Classification if a patient is Hispanic.  0-not hispanic 1-hispanic
   + Body Mass Index: Patient's body mass.
   + Age of First Birth: Age of a patient's first child birth.
   + Relatives with Breast Cancer: History if patient has relatives with breast cancer.
@@ -29,7 +29,7 @@ Each mammogram screening includes the following features:
   + Surgical Menopause: To tell if a woman has gone through a surgical menopause.
   + Hormone Therapy: To tell if a woman has gone through hromone therapy.
   + Invasive breast cancer: Diagnosis if invasive breast cancer has been found within a year of index screening mammogram.
-  + Cancer: Diagnosis of invasive or ductal carcinoma within a year of index screening mammogram.
+  + Cancer: Diagnosis of invasive or ductal carcinoma within a year of index screening mammogram. 0-no cancer 1-cancer.
   + Training: Training data from dataset.
   + Count: Frequency count of combination of all prior features and their outcomes.
 
@@ -40,6 +40,8 @@ Data for this study was obtained from the BCSC Data Resource. More information r
 Based on the information listed above we believe that age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer within the past year will be the most influential features to help determine whether a patient has breast cancer or not. 
 
 ## Dependencies
+
+These are dependencies needed in case we want to split data, make classification trees, and work with Naive Bayes classifier.
 ```{r}
 library(rpart)
 library(rpart.plot)
@@ -50,8 +52,8 @@ source("class-util.R")
 ```
 
 ## Gathering and Processing Data
-We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled unknown. For example, under the surgical menopause the original label for a number nine is "unknown or not menopausal". For this feature and others like it we will change the label to not menopausal or the corresponding second label.
 
+We modified the feature names in order to have more meaninful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled unknown. For example, under the surgical menopause the original label for a number nine is "unknown or not menopausal". For this feature and others like it we will change the label to not menopausal or the corresponding second label.
 ```{r}
 mammogram = read.csv("risk.csv")
 names(mammogram) <- c("menopause","age.group","breast.density","race","hispanic","bmi","age.first.birth","relatives.with.bc","breast.procedure","last.mammogram","surgical.menopause","hormone.therapy","invasive.bc","cancer","training","count")
@@ -69,13 +71,16 @@ mammogram$surgical.menopause = factor(mammogram$surgical.menopause, levels = c(0
 
 mammogram$hormone.therapy = factor(mammogram$hormone.therapy, levels = c(0,1,9), labels = c("no", "yes","not menopausal"))
 
-mammogram$cancerAsFactor = factor(mammogram$cancer, levels = c(0,1), labels = c("no cancer", "cancer"))
+mammogram$age.first.birth = factor(mammogram$age.first.birth, levels = c(0,1,2,9), labels = c("< 30", ">= 30","nulliparous", "unknown"))
 
+mammogram$cancerAsFactor = factor(mammogram$cancer, levels = c(0,1), labels = c("no cancer", "cancer"))
 ```
 
 Below we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summay of the data we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data we decided to to completely remove the bim feature. Aside from removing the bmi feature we will remove the count and training features because they do not provide relevant information to our model. The training feature only states where to split the data, we will not follow this since we want our data to be split randomdly. As for the count, it was removed because it's previous combinations of all features and outcomes something that is not necessary for this project.
 ```{r}
 paste("Total Number of rows:", nrow(mammogram))
+paste("Patients without Cancer:", sum(mammogram$cancer==0))
+paste("Patients with Cancer:", sum(mammogram$cancer==1))
 
 paste("Menopause:", sum(mammogram$menopause == 9))
 paste("Race:", sum(mammogram$race == "unknown"))
@@ -92,8 +97,7 @@ mammogram$bmi = NULL
 
 ```
 
-Even after removing a feature there are still a lot of uncertainty in between the data sets so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menapause, race, age of first birth, relatives with breast cancer, whether their hispanic, last mammograrm, and breast procedure. After removing all the the uncertainty from our dataset our dataset goes from containing 280659 rows to 60895 rows meaning we lost about 78 percent of all our data.
-
+Even after removing a feature there are still a lot of uncertainty in between the data sets so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menapause, race, age of first birth, relatives with breast cancer, whether their hispanic, last mammograrm, and breast procedure. 
 ```{r}
 rows = mammogram$hispanic == 9
 mammogram = mammogram[!rows, ]
@@ -123,32 +127,76 @@ sum(mammogram$relatives.with.bc == 9)
 sum(mammogram$hispanic == 9)
 sum(mammogram$last.mammogram == 9)
 sum(mammogram$breast.procedure == 9)
-
-paste("Total Number of rows:", nrow(mammogram))
-
-
 ```
 
-
+After removing all the the uncertainty from our dataset our dataset goes from containing 280659 rows to 60895 rows meaning we lost about 78 percent of all our data. We also went from our initial 16 features we came down to 13 unique features, the 14th feature shown in below is the cancer label but in the format of a factor. 
 ```{r}
 str(mammogram)
 ```
 
+## Data Exploration
 
+For the data exploration we will only use barplots and density plots because majority of our data is in the form of factors and it rather difficult to try to use any other type of plot when exploring the data.
+
+Based on the summary we can see that most of the patients getting a mammogram screening are between 50 to 54. 
 ```{r}
 summary(mammogram)
 ```
 
+From all the data that is remaning we can see that majority of the patients do not have cancer. We can see that only about four percent of the data is relevant to patients that do have cancer. This information will be crutial when it comes to predicting because we would rather have patients think that they have cancer and do all the procedures to prevent cancer rather than having a patient think they do not have cancer and later go through health problems.  
 ```{r}
-#to explore
+paste("Patients without Cancer:", sum(mammogram$cancer==0))
+paste("Patients with Cancer:", sum(mammogram$cancer==1))
+```
 
-# mammogram$age.group
-# mammogram$breast.density
-# mammogram$race
-# mammogram$hispanic
-# mammogram$hormone.therapy
 
-plot(density(mammogram$hispanic))
+```{r}
+plot(density(mammogram$hispanic), col="firebrick", main = "Density of Patients with Hispanic decent")
+```
+
+```{r}
+par(mar=c(5, 10, 4, 2))
+plot(mammogram$race, col="salmon", main="Race of Patients", horiz = TRUE, las=1)
+```
+
+
+From this graph we can see that majority of the patients have not had invasive breast cancer in the past. As for getting any form of breast procedure we can see that about 30,000 patients have had a breast procedure in the past. 
+```{r}
+# count number of yes and no of each table
+Invasive.BC = table(mammogram$invasive.bc)
+Breast.Procedure = table(mammogram$breast.procedure)
+
+# plot both items side by side in same graph
+barplot(cbind(Invasive.BC, Breast.Procedure), main="Patients that have had Invasive Breast Cancer or a Breast Procedure", beside=TRUE, col=c("lightblue", "salmon"), las=1)
+ticks<-c(10000,30000,50000,70000)
+axis(2,at=ticks,labels=ticks, las=1)
+legend("topright", c("NO", "YES"), inset=0.05, fill=c("lightblue", "salmon"))
+```
+
+From this horizontal barplot we can see that some of the data might not be helpful when predicting because some of the breast density was measured differently and it does not provide helpful insight.
+```{r}
+par(mar=c(5, 10, 4, 2))
+plot(mammogram$breast.density, col="salmon", main="Breast Density", horiz = TRUE, las=1)
+```
+
+
+From these two plots we can see that majority of the patients from the data do not have cancer. For those individuals that do have breast cancer the age range that seems to be more prone to breast cancer is from 50 to 74 years of age. 
+```{r}
+# have two graphs side by side
+par(mfrow=c(1,2))
+
+# range to use for the x limit
+range = sort(as.vector(table(mammogram$age.group[mammogram$cancer == 0])), decreasing = TRUE)[1]
+
+# plot patients with cancer
+barplot(table(mammogram$age.group[mammogram$cancer == 1]), main = "Patient Age Group with Cancer", col="salmon", xlim=c(1, range), horiz = TRUE,las=1)
+
+# plot patients without cancer
+barplot(table(mammogram$age.group[mammogram$cancer == 0]), main = "Patient Age Group with No Cancer", col="light blue", xlim =c(1, range), horiz = TRUE,las=1)
+```
+
+```{r}
+plot(mammogram$hormone.therapy, col="salmon", main="The number of patients going through Hormone Treatment")
 ```
 
 ## Splitting data into training and testing datasets
@@ -161,9 +209,9 @@ tr_dat = split[[1]]
 te_dat = split[[2]]
 ```
 
-<<<<<<< HEAD
 ## Creating Naive Bayes Classification 
 
+The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. 
 ```{r}
 fit1 = naiveBayes(cancerAsFactor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
 
@@ -174,11 +222,7 @@ print(fit1)
 
 ```{r}
 actual = te_dat$cancerAsFactor
-
 predicted = predict(fit1, newdata = te_dat)
-
-sum(te_dat$cancerAsFactor == "cancer")
-
 
 con_matrix = table(actual, predicted)
 con_matrix
