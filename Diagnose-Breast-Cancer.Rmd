@@ -230,11 +230,6 @@ con_matrix
 
 Although typically with Naive Bayes incrementing the number of 
 
-
-## Logistic Regression
-
-## Classification Trees
-
 ## Creating Classification Tree
 Creating a classification tree allows data to be organized into different nodes that can visually display predictions of the data. 
 This can make it easier to interpret whether the features we chose in our hypothesis helps predict if a patient is under risk of breast
