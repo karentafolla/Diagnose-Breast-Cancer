@@ -199,6 +199,9 @@ barplot(table(mammogram$age.group[mammogram$cancer == 0]), main = "Patient Age G
 plot(mammogram$hormone.therapy, col="salmon", main="The number of patients going through Hormone Treatment")
 ```
 
+
+
+
 ## Splitting data into training and testing datasets
 
 In order to continue our work on predicting whether a patient has breast cancer or not we will split the data into to testing and training dataset. That way we can train or models and test our results.
@@ -234,21 +237,30 @@ Although typically with Naive Bayes incrementing the number of
 Creating a classification tree allows data to be organized into different nodes that can visually display predictions of the data. 
 This can make it easier to interpret whether the features we chose in our hypothesis helps predict if a patient is under risk of breast
 cancer.
-
 ```{r}
-fit2 = rpart(cancerAsFactor ~ age.group + breast.density + relatives.with.bc + invasive.bc, data = tr_dat, method="class")
+fit2 = rpart(cancerAsFactor ~ age.group + breast.density + relatives.with.bc + invasive.bc + menopause, data = tr_dat, method="class")
 prp(fit2, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer",box.col=c("palegreen")[fit2$frame$val])
 summary(fit2)
 ```
 The table below shows the true positives, true, negatives, false positives, and false negatives. The results show how our features 
-provided an almost 100 percent accuracy for our predictions. 
+provided a 100 percent accuracy for diagnosing a patient that she has breast cancer. The negative results, however, has about one percent of false negative predictions. This means that out of 20481 people, 221 patients who are diagnosed with no breast cancer actually do have it.
 ```{r}
 predicted = predict(fit2, te_dat, type="class")
 actual = te_dat$cancerAsFactor
 table(actual,predicted)
 mean(actual==predicted)
 ```
+##Determining the Accuracy of Classification Tree
+```{r}
+conf_matix =table(actual,predicted)
+precision = conf_matrix[[4]]/(conf_matrix[[2]]+conf_matrix[[4]])
+recall = conf_matrix[[4]]/conf_matrix[[3]]
+mean(predicts_testing==actual_testing)
+```
 
 
 
-## Naive Bayes
+
+
+
+
