@@ -214,13 +214,11 @@ te_dat = split[[2]]
 
 ## Creating Naive Bayes Classification 
 
-The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. 
+The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. The table below demonstrates that the feature with the patient having invasive breast cancer after a year from her mammogram is the strongest feature for predicting long term breast cancer. 
 ```{r}
 fit1 = naiveBayes(cancerAsFactor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
-
 class(fit1)
-summary(fit1)
-print(fit1)
+print(fit1$tables$invasive.bc)
 ```
 
 ```{r}
@@ -231,7 +229,6 @@ con_matrix = table(actual, predicted)
 con_matrix
 ```
 
-Although typically with Naive Bayes incrementing the number of 
 
 ## Creating Classification Tree
 Creating a classification tree allows data to be organized into different nodes that can visually display predictions of the data. 
@@ -255,10 +252,15 @@ mean(actual==predicted)
 conf_matix =table(actual,predicted)
 precision = conf_matrix[[4]]/(conf_matrix[[2]]+conf_matrix[[4]])
 recall = conf_matrix[[4]]/conf_matrix[[3]]
-mean(predicts_testing==actual_testing)
+mean(actual==predicted)
 ```
 
+```{r}
 
+fit3 = rpart(cancerAsFactor ~ , data = tr_dat, method="class")
+prp(fit3, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer",box.col=c("palegreen")[fit3$frame$val])
+summary(fit3)
+```
 
 
 
