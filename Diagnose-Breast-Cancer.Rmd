@@ -94,32 +94,31 @@ paste("Breast Procedure:", sum(mammogram$breast.procedure == 9))
 mammogram$training = NULL
 mammogram$count = NULL
 mammogram$bmi = NULL
-
 ```
 
 Even after removing a feature there are still a lot of uncertainty in between the data sets so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menapause, race, age of first birth, relatives with breast cancer, whether their hispanic, last mammograrm, and breast procedure. 
 ```{r}
 rows = mammogram$hispanic == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$age.first.birth == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$relatives.with.bc == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$menopause == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$last.mammogram == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$breast.procedure == 9
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$race == "unknown"
 mammogram = mammogram[!rows, ]
-
+ 
 rows = mammogram$age.first.birth == "unknown"
 mammogram = mammogram[!rows, ]
 
@@ -140,11 +139,6 @@ str(mammogram)
 ## Data Exploration
 
 For the data exploration we will only use barplots and density plots because majority of our data is in the form of factors and it rather difficult to try to use any other type of plot when exploring the data.
-
-Based on the summary we can see that most of the patients getting a mammogram screening are between 50 to 54. 
-```{r}
-summary(mammogram)
-```
 
 From all the data that is remaning we can see that majority of the patients do not have cancer. We can see that only about four percent of the data is relevant to patients that do have cancer. This information will be crutial when it comes to predicting because we would rather have patients think that they have cancer and do all the procedures to prevent cancer rather than having a patient think they do not have cancer and later go through health problems.  
 ```{r}
@@ -198,9 +192,6 @@ barplot(table(mammogram$age.group[mammogram$cancer == 1]), main = "Patient Age G
 barplot(table(mammogram$age.group[mammogram$cancer == 0]), main = "Patient Age Group with No Cancer", col="light blue", xlim =c(1, range), horiz = TRUE,las=1)
 ```
 
-```{r}
-plot(mammogram$hormone.therapy, col="salmon", main="The number of patients going through Hormone Treatment")
-```
 
 
 ```{r}
@@ -211,6 +202,7 @@ axis(2, at=1:3, labels=c("Age < 30", "Age >= 30", "Nulliparous"), las=1)
 
 legend(1500,1.5, c("Cancer", "No Cancer"),col=c("red", "lightblue"), cex = 0.67, pch = 19)
 ```
+
 
 
 ## Splitting data into training and testing datasets
@@ -224,80 +216,299 @@ tr_dat = split[[1]]
 te_dat = split[[2]]
 ```
 
-## Creating Naive Bayes Classification 
-
-The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. 
-```{r}
-fit1 = naiveBayes(cancer_factor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
-
-class(fit1)
-summary(fit1)
-print(fit1$tables$menopause)
-print(fit1$tables$relatives.with.bc)
-print(fit1$tables$invasive.bc)
-
-```
-
-```{r}
-actual = te_dat$cancer_factor
-predicted = predict(fit1, newdata = te_dat)
-
-con_matrix = table(actual, predicted)
-con_matrix
-```
-
-Although the Naive Bayes classification does not guarantee that an incremented amount of features will improve the classifier. We will test out the classifier with all features provided in order to see whether or not we chose the right features for the model to use. 
-```{r}
-fit2 = naiveBayes(cancer_factor ~ ., data = tr_dat)
-
-# class(fit1)
-# summary(fit1)
-# print(fit1)
-```
-
-From this new confusion Matrix we can see that the 
-```{r}
-actual = te_dat$cancer_factor
-predicted = predict(fit2, newdata = te_dat)
-
-con_matrix = table(actual, predicted)
-con_matrix
-```
-
-
-```{r}
-fit1 = naiveBayes(cancer_factor ~ age.group + last.mammogram + age.first.birth, data = tr_dat)
-
-# class(fit1)
-# summary(fit1)
-# print(fit1)
-```
-
-From this new confusion Matrix we can see that the 
-```{r}
-actual = te_dat$cancer_factor
-predicted = predict(fit1, newdata = te_dat)
-
-con_matrix = table(actual, predicted)
-con_matrix
-```
 
 
 ## Creating Classification Tree
 Creating a classification tree allows data to be organized into different nodes that can visually display predictions of the data. 
+
 This can make it easier to interpret whether the features we chose in our hypothesis helps predict if a patient is under risk of breast
 cancer.
+```{r}
+fit = rpart(cancer_factor ~ age.group + breast.density + relatives.with.bc + invasive.bc + menopause, data = tr_dat, method="class")
+
+prp(fit, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer",box.col=c("palegreen")[fit$frame$val])
+#summary(fit)
+```
+
+## Model Analysis
+
+The table below shows the true positives, true, negatives, false positives, and false negatives. The results show how our features provided a 100 percent accuracy for diagnosing a patient that she has breast cancer. The negative results, however, has about one percent of false negative predictions. This means that out of 20481 people, 221 patients who are diagnosed with no breast cancer actually do have it.
+```{r}
+predicted = predict(fit, newdata = te_dat, type="class")
+actual = te_dat$cancer_factor
+
+confusion_matrix = table(actual, predicted)
+TN = confusion_matrix[1,1]
+FN = confusion_matrix[2,1]
+FP = confusion_matrix[1,2]
+TP = confusion_matrix[2,2]
+
+confusion_matrix
+
+```
 
 ```{r}
-fit2 = rpart(cancer_factor ~ age.group + breast.density + relatives.with.bc + invasive.bc, data = tr_dat, method="class")
-prp(fit2, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer",box.col=c("palegreen")[fit2$frame$val])
-#summary(fit2)
+accuracy = mean(predicted == actual)
+round(accuracy, 3)
 ```
-The table below shows the true positives, true, negatives, false positives, and false negatives. The results show how our features 
-provided an almost 100 percent accuracy for our predictions. 
+
+Here we can see that this new model predicted recall more than ninety percent of the time.
+
 ```{r}
-predicted = predict(fit2, te_dat, type="class")
-actual = te_dat$cancer_factor
-table(actual,predicted)
-mean(actual==predicted)
+# precision = true positives / (true positives + false positives)
+precision = TP/(TP+FP)
+
+# recall =  true positives/ (true positives + false negatives)
+recall = TP/(TP + FN)
+
+paste("precision:", round(precision, 3))
+paste("recall:", round(recall, 3))
+
 ```
+
+Here we can also see how heart disease was predicted most of the time. 
+
+```{r}
+
+plot(density(as.numeric(predicted[actual == "cancer"])), main = "Double Density Plot", xlab="Decision Tree Output", col="red", ylim=range(0:3))
+lines(density(as.numeric(predicted[actual == "no cancer"])), col="blue")
+
+```
+
+ 
+
+```{r}
+te_errs = c()
+tr_errs = c()
+te_actual = te_dat$cancer_factor
+tr_sizes = seq(100, nrow(tr_dat), length.out=10)
+for (tr_size in tr_sizes) {
+  tr_dat1 = tr_dat[1:tr_size,]
+  tr_actual = tr_dat1$cancer_factor
+  fit = rpart(cancer_factor ~ age.group + breast.density + relatives.with.bc + invasive.bc + menopause, data = tr_dat, method="class")
+  
+  # error on training set
+  tr_predicted = predict(fit, newdata = tr_dat1, type="class")
+  err = sum(tr_actual != tr_predicted)/length(tr_predicted)
+  tr_errs = c(tr_errs, err)
+ 
+  # error on test set
+  te_predicted = predict(fit, newdata = te_dat, type="class")
+  err = sum(te_actual != te_predicted)/length(te_predicted)
+  te_errs = c(te_errs, err)
+}
+
+```
+
+
+
+```{r}
+plot(tr_sizes, tr_errs, col="firebrick", type="b", ylim=range(c(te_errs,tr_errs)), ylab="Classification Error", xlab="Training Set Size", main="Learning Curve for features maxhr, thal, dep")
+points(tr_sizes, te_errs, col="blue", type="b")
+legend("topright", c("Training Errors", "Testing Errors"), inset=0.05, lty=1, lwd=3, col=c("firebrick", "blue"),cex = 0.75)
+
+```
+
+```{r}
+fit = rpart(cancer_factor ~ menopause + age.group  + breast.density + race + hispanic + age.first.birth + relatives.with.bc + breast.procedure + last.mammogram + surgical.menopause + hormone.therapy, data = tr_dat, method="class")
+
+prp(fit, extra=106, varlen=-10, main="Classification Tree for Determining Breast Cancer")
+#summary(fit)
+```
+
+```{r}
+predicted = predict(fit, newdata = te_dat, type="class")
+actual = te_dat$cancer_factor
+
+confusion_matrix = table(actual, predicted)
+TN = confusion_matrix[1,1]
+FN = confusion_matrix[2,1]
+FP = confusion_matrix[1,2]
+TP = confusion_matrix[2,2]
+
+confusion_matrix
+
+```
+
+```{r}
+accuracy = mean(predicted == actual)
+round(accuracy, 3)
+```
+
+Here we can see that this new model predicted recall more than ninety percent of the time.
+
+```{r}
+# precision = true positives / (true positives + false positives)
+precision = TP/(TP+FP)
+
+# recall =  true positives/ (true positives + false negatives)
+recall = TP/(TP + FN)
+
+paste("precision:", round(precision, 3))
+paste("recall:", round(recall, 3))
+
+```
+
+Here we can also see how heart disease was predicted most of the time. 
+
+```{r}
+
+plot(density(as.numeric(predicted[actual == "no cancer"])), main = "Double Density Plot", xlab="Decision Tree Output", col="blue")
+lines(density(as.numeric(predicted[actual == "cancer"])), col="red")
+
+```
+
+
+## Creating Naive Bayes Classification 
+
+The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. All which are the features from our hypothesis. By printing the mean of the 
+```{r}
+fit = naiveBayes(cancer_factor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
+
+print(fit$tables$menopause)
+print(fit$tables$relatives.with.bc)
+print(fit$tables$invasive.bc)
+```
+
+## Analyzing the Model 1
+
+The confusion matrix shows that majority of the predictions were correct. Unfortunately the model is not great because for 155 patients it was predicted that they had no cancer when in fact they did. In an ideal model it would be better to predict cancer when there is none because then all patients would be getting checked and not have a false positive.
+```{r}
+actual = te_dat$cancer_factor
+predicted = predict(fit, newdata = te_dat)
+
+confusion_matrix = table(actual, predicted)
+TN = confusion_matrix[1,1]
+FN = confusion_matrix[2,1]
+FP = confusion_matrix[1,2]
+TP = confusion_matrix[2,2]
+
+confusion_matrix
+
+```
+
+
+The accuracy with the selected features is fairly high but with data as sensitive as the one we have we would like to have the highest accuracy. 
+```{r}
+accuracy = mean(predicted == actual)
+round(accuracy, 4)
+```
+
+
+Here we can see that the first model based on the precison we can see that all our prediction with cancer were correct. As for our recall we can see that the model predicted both items correctly seventy five percent of the time.
+```{r}
+# precision = true positives / (true positives + false positives)
+precision = TP/(TP+FP)
+
+# recall =  true positives/ (true positives + false negatives)
+recall = TP/(TP + FN)
+
+paste("precision:", round(precision, 3))
+paste("recall:", round(recall, 3))
+
+```
+
+The double density plot shows that all the predictions for cancer were correct but there is a margin of error when the no cancer prediction shows.
+```{r}
+plot(density(as.numeric(predicted[actual == "cancer"])), main = "Prediction Double Density Plot", xlab="Decision Tree Output", col="red", ylim=range(0:3))
+lines(density(as.numeric(predicted[actual == "no cancer"])), col="blue")
+legend(1.3,2, c("Cancer", "No Cancer"),col=c("red", "blue"), inset=0.05, lty=1, lwd=3)
+```
+
+## Model 2
+
+Although the Naive Bayes classification does not guarantee that an incremented amount of features will improve the classifier it could make better predictions if useful features are in use. 
+```{r}
+fit = naiveBayes(cancer_factor ~ ., data = tr_dat)
+print(fit$tables$invasive.bc)
+```
+
+From this new confusion Matrix we can see that the classier gets segnificantly worse.
+```{r}
+actual = te_dat$cancer_factor
+predicted = predict(fit, newdata = te_dat)
+
+con_matrix = table(actual, predicted)
+TN = confusion_matrix[1,1]
+FN = confusion_matrix[2,1]
+FP = confusion_matrix[1,2]
+TP = confusion_matrix[2,2]
+
+confusion_matrix
+
+```
+
+
+We can see that the accuracy dropped by .2 percent. 
+```{r}
+accuracy = mean(predicted == actual)
+round(accuracy, 3)
+```
+
+The overall recall for this model dropped from .75 to .69. Ideally the recall should be as close as possible to one.
+```{r}
+# precision = true positives / (true positives + false positives)
+precision = TP/(TP+FP)
+
+# recall =  true positives/ (true positives + false negatives)
+recall = TP/(TP + FN)
+
+paste("precision:", round(precision, 3))
+paste("recall:", round(recall, 3))
+
+```
+
+From this confusion matrix we can see that the density of the error is almost at one percent.
+```{r}
+plot(density(as.numeric(predicted[actual == "cancer"])), main = "Double Density Plot", xlab="Decision Tree Output", col="red", ylim=range(0:3))
+lines(density(as.numeric(predicted[actual == "no cancer"])), col="blue")
+legend(1.3,2, c("Cancer", "No Cancer"),col=c("red", "blue"), inset=0.05, lty=1, lwd=3)
+```
+
+## Model 3
+
+In this last model the feature invasive breast cancer is removed to see the prediction of breast cancer not taking under consideration previous conditions.
+```{r}
+fit = naiveBayes(cancer_factor ~ age.group + last.mammogram + age.first.birth + race, data = tr_dat)
+
+# class(fit)
+# summary(fit)
+# print(fit)
+```
+
+From this new confusion Matrix we can see that the the results are the same as the previous model.
+```{r}
+actual = te_dat$cancer_factor
+predicted = predict(fit, newdata = te_dat)
+
+
+con_matrix = table(actual, predicted)
+TN = confusion_matrix[1,1]
+FN = confusion_matrix[2,1]
+FP = confusion_matrix[1,2]
+TP = confusion_matrix[2,2]
+
+confusion_matrix
+
+```
+
+
+```{r}
+accuracy = mean(predicted == actual)
+round(accuracy, 3)
+```
+
+
+```{r}
+# precision = true positives / (true positives + false positives)
+precision = TP/(TP+FP)
+
+# recall =  true positives/ (true positives + false negatives)
+recall = TP/(TP + FN)
+
+paste("precision:", round(precision, 3))
+paste("recall:", round(recall, 3))
+
+```
+```
+## Conclusion
