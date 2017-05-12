@@ -85,7 +85,7 @@ paste("Patients with Cancer:", sum(mammogram$cancer==1))
 paste("Menopause:", sum(mammogram$menopause == 9))
 paste("Race:", sum(mammogram$race == "unknown"))
 paste("BMI", sum(mammogram$bmi == "unknown"))
-paste("Age of First Birth:", sum(mammogram$age.first.birth == 9))
+paste("Age of First Birth:", sum(mammogram$age.first.birth == "unknown"))
 paste("Relatives with Breast Cancer:", sum(mammogram$relatives.with.bc == 9))
 paste("Hispanic:", sum(mammogram$hispanic == 9))
 paste("Last Mammogram:", sum(mammogram$last.mammogram == 9))
@@ -100,10 +100,7 @@ Even after removing a feature there are still a lot of uncertainty in between th
 ```{r}
 rows = mammogram$hispanic == 9
 mammogram = mammogram[!rows, ]
- 
-rows = mammogram$age.first.birth == 9
-mammogram = mammogram[!rows, ]
- 
+
 rows = mammogram$relatives.with.bc == 9
 mammogram = mammogram[!rows, ]
  
@@ -124,7 +121,7 @@ mammogram = mammogram[!rows, ]
 
 sum(mammogram$menopause == 9)
 sum(mammogram$race == "unknown")
-sum(mammogram$age.first.birth == 9)
+sum(mammogram$age.first.birth == "unknown")
 sum(mammogram$relatives.with.bc == 9)
 sum(mammogram$hispanic == 9)
 sum(mammogram$last.mammogram == 9)
@@ -215,7 +212,6 @@ split = split_data(mammogram)
 tr_dat = split[[1]]
 te_dat = split[[2]]
 ```
-
 
 
 ## Creating Classification Tree
