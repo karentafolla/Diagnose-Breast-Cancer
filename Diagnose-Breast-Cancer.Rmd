@@ -34,7 +34,7 @@ Each mammogram screening includes the following features:
   + Training: Training data from the dataset.
   + Count: Frequency count of the combination of all prior features and their outcomes.
 
-Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at http://breastscreening.cancer.gov/.
+Data for this study was obtained from the BCSC Data Resource. More information regarding this resource is available at http://breastscreening.cancer.gov/. To download the data and dependencies without having to create an account with BCSC please visit our GitHub page at https://github.com/karentafolla/Diagnose-Breast-Cancer.git.
 
 ## Hypothesis
 
@@ -49,7 +49,6 @@ library(rpart.plot)
 library(maptree)
 library(e1071)
 source("lin-regr-util.R")
-source("class-util.R")
 ```
 
 ## Gathering and Processing Data
@@ -241,7 +240,6 @@ FP = confusion_matrix[1,2]
 TP = confusion_matrix[2,2]
 
 confusion_matrix
-
 ```
 
 ```{r}
