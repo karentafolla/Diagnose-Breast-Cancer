@@ -53,7 +53,7 @@ source("lin-regr-util.R")
 
 ## Gathering and Processing Data
 
-We modified the feature names in order to have more meaningful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset, we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled unknown. For example, under the surgical menopause, the original label for a number nine is "unknown or not menopausal". For this feature and others like it, we will change the label to not menopausal or the corresponding second label.
+We modified the feature names in order to have more meaningful names rather than acronyms that might be hard to understand. We also switched some of the numeric values into factors in order for the data to be easier to understand and process. With this dataset, we are making the assumption of labeling items with the second name rather than the first name when the row of the feature is labeled "unknown". For example, under the surgical menopause, the original label for a number nine is "unknown or not menopausal". For this feature and others like it, we will change the label to not menopausal or the corresponding second label.
 ```{r}
 mammogram = read.table("risk.txt")
 names(mammogram) <- c("menopause","age.group","breast.density","race","hispanic","bmi","age.first.birth","relatives.with.bc","breast.procedure","last.mammogram","surgical.menopause","hormone.therapy","invasive.bc","cancer","training","count")
@@ -76,7 +76,7 @@ mammogram$age.first.birth = factor(mammogram$age.first.birth, levels = c(0,1,2,9
 mammogram$cancer_factor = factor(mammogram$cancer, levels = c(0,1), labels = c("no cancer", "cancer"))
 ```
 
-Below we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summary of the data we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data we decided to completely remove the BIM feature. Aside from removing the BMI feature, we will remove the count and training features because they do not provide relevant information to our model. The training feature only states where to split the data, we will not follow this since we want our data to be split randomly. As for the count, it was removed because it's previous combinations of all features and outcomes something that is not necessary for this project.
+Below, we are looking at all the values where there is unknown data or anything label as a 9 which is also unknown data. After looking at the summary of the data, we realized that 109179 rows out of the total 280659 had unknown information when it came to the body mass index (bim). Since the number of missing data was almost 40 percent of the whole data, we decided to completely remove the BIM feature. Aside from removing the BMI feature, we will remove the count and training features because they do not provide relevant information to our model. The training feature only states where to split the data. We will not follow this since we want our data to be split randomly. As for the count, it was removed because it has previous combinations of all features and outcomes which are not necessary for this project.
 ```{r}
 paste("Total Number of rows:", nrow(mammogram))
 paste("Patients without Cancer:", sum(mammogram$cancer==0))
@@ -96,7 +96,7 @@ mammogram$count = NULL
 mammogram$bmi = NULL
 ```
 
-Even after removing a feature, there are still a lot of uncertainty in between the data sets, so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menopause, race, the age of when a patient had their first birth, relatives with breast cancer, whether they're Hispanic, last mammogram, and breast procedure.
+Even after removing a feature, there are still a lot of uncertainty in between the data sets, so we will remove all uncertainty from the dataset. We will do this by removing the rows of those items that have unknown data for menopause, race, the age of when a patient had their first birth, relatives with breast cancer, whether they are Hispanic, last mammogram, and breast procedure.
 ```{r}
 rows = mammogram$hispanic == 9
 mammogram = mammogram[!rows, ]
@@ -128,7 +128,7 @@ sum(mammogram$last.mammogram == 9)
 sum(mammogram$breast.procedure == 9)
 ```
 
-After removing all the uncertainty from our dataset our dataset goes from containing 280659 rows to 60895 rows meaning we lost about 78 percent of all our data. We also went from our initial 16 features we came down to 13 unique features, the 14th feature shown in below is the cancer label but in the format of a factor.
+After removing all the uncertainty from our dataset, our dataset goes from containing 280659 rows to 60895 rows, meaning we lost about 78 percent of all our data. We also went from our initial 16 features we came down to 13 unique features, the 14th feature shown in below is the cancer label but in the format of a factor.
 ```{r}
 str(mammogram)
 ```
@@ -155,7 +155,7 @@ plot(mammogram$race, col="salmon", main="Race of Patients", horiz = TRUE, las=1)
 ```
 
 
-From this graph, we can see that majority of the patients have not had invasive breast cancer in the past. As for getting any form of breast procedure, we can see that about 30,000 patients have had a breast procedure in the past.
+From this graph, the majority of the patients have not had invasive breast cancer in the past. As for getting any form of breast procedure, we can see that about 30,000 patients have had a breast procedure in the past.
 ```{r}
 # count number of yes and no of each table
 Invasive.BC = table(mammogram$invasive.bc)
@@ -168,14 +168,14 @@ axis(2,at=ticks,labels=ticks, las=1)
 legend("topright", c("NO", "YES"), inset=0.05, fill=c("lightblue", "salmon"))
 ```
 
-From this horizontal bar plot, we can see that some of the data might not be helpful when predicting because some of the breast density was measured differently and it does not provide helpful insight.
+From this horizontal bar plot, some of the data might not be helpful when predicting because some of the breast density was measured differently and it does not provide helpful insight.
 ```{r}
 par(mar=c(5, 10, 4, 2))
 plot(mammogram$breast.density, col="salmon", main="Breast Density", horiz = TRUE, las=1)
 ```
 
 
-From these two plots, we can see that majority of the patients from the data do not have cancer. For those individuals that do have breast cancer the age range that seems to be more prone to breast cancer are from 50 to 74 years of age.
+From these two plots, the majority of the patients from the data do not have cancer. For those individuals that do have breast cancer, the age range that seems to be more prone to breast cancer are from 50 to 74 years of age.
 ```{r}
 # have two graphs side by side
 par(mfrow=c(1,2))
@@ -190,7 +190,7 @@ barplot(table(mammogram$age.group[mammogram$cancer == 1]), main = "Patient Age G
 barplot(table(mammogram$age.group[mammogram$cancer == 0]), main = "Patient Age Group with No Cancer", col="light blue", xlim =c(1, range), horiz = TRUE,las=1)
 ```
 
-Out of 30 percent of the sample data, we can see that majority of the patients do not have breast cancer. Out of those that do, they seem to fall for those who were thirty years old when they gave birth to their first child.
+Out of 30 percent of the sample data, the majority of the patients do not have breast cancer. Out of those that do have breast cancer, they seem to fall under the category of those who were thirty years old when they gave birth to their first child.
 ```{r}
 par(mar=c(5, 10, 4, 2))
 rows = sample(1:nrow(mammogram), floor(nrow(mammogram)/30))
@@ -203,7 +203,7 @@ legend(1500,1.5, c("Cancer", "No Cancer"),col=c("red", "lightblue"), cex = 0.67,
 
 ## Splitting data into training and testing datasets
 
-In order to continue our work on predicting whether a patient has breast cancer or not we will split the data into to testing and training dataset. That way we can train or models and test our results.
+In order to continue our work on predicting whether a patient has breast cancer or not, we will split the data into to testing and training dataset. That way we can train or models and test our results.
 ```{r}
 mammogram$cancer = NULL
 set.seed(132)
@@ -291,7 +291,7 @@ for (tr_size in tr_sizes) {
 
 ```
 
-The learning curve below demonstrates how the more data based on our chosen features added, the less amount of errors are produced. 
+The learning curve below demonstrates how the more data based on our chosen features were added, the less amount of errors are produced. 
 ```{r}
 par(mar=c(5, 10, 4, 2))
 plot(tr_sizes, tr_errs, col="firebrick", type="b", ylim=range(c(te_errs,tr_errs)), ylab="Classification Error", xlab="Training Set Size", main=paste("Learning Curve for features Age Group, Breast Density,", "\nRelatives With Breast Cancer, Invasive Breast Cancer, and Menopause"), cex.main=1)
@@ -309,7 +309,7 @@ prp(fit, extra=106, varlen=-10, main="Classification Tree for Determining Breast
 ```
 ## Analyzing Model 2
 
-The confusion matrix further demonstrates the significance the feature of invasive cancer is towards predicting breast cancer. The results show that nearly all of the patients had a true negative result of having no cancer. Less than one percent of the patients had a false negative result of having no cancer.
+The confusion matrix further demonstrates the significance the feature of invasive cancer has towards predicting breast cancer. The results show that nearly all of the patients had a true negative result of having no cancer. Less than one percent of the patients had a false negative result of having no cancer.
 ```{r}
 predicted = predict(fit, newdata = te_dat, type="class")
 actual = te_dat$cancer_factor
@@ -347,7 +347,7 @@ legend(1.2,2.5, c("Cancer", "No Cancer"),col=c("red", "blue"), inset=0.05, lty=1
 ## Creating Naive Bayes Classification 
 
 ## Model 1
-The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. All which are the features from our hypothesis. By printing the mean of the features we can see whether or not they will be relevant using Naive Bayes Classification. The most important feature in this group when it comes to predicting cancer is whether or not a patient has had cancer in the past.
+The Naive Bayes model will include the features age group, menopause, breast density, relatives with breast cancer, and invasive breast cancer. All which are the features from our hypothesis. By printing the mean of the features, we can see whether or not they will be relevant using Naive Bayes Classification. The most important feature in this group when it comes to predicting cancer is whether or not a patient has had cancer in the past.
 ```{r}
 fit = naiveBayes(cancer_factor ~ age.group + menopause + breast.density + relatives.with.bc + invasive.bc, data = tr_dat)
 
@@ -358,7 +358,7 @@ print(fit$tables$invasive.bc)
 
 ## Analyzing Model 1
 
-The confusion matrix shows that majority of the predictions were correct. Unfortunately, the model is not great because for 155 patients it was predicted that they had no cancer when in fact they did. In an ideal model, it would be better to predict cancer when there is none because then all patients would be getting checked and not have a false positive.
+The confusion matrix shows that majority of the predictions were correct. Unfortunately, the model is not great because for 155 patients, it was predicted that they had no cancer when in fact they did. In an ideal model, it would be better to predict cancer when there is none because then all patients would be getting checked and not have a false positive.
 ```{r}
 actual = te_dat$cancer_factor
 predicted = predict(fit, newdata = te_dat)
@@ -373,14 +373,14 @@ confusion_matrix
 
 ```
 
-The accuracy with the selected features is fairly high but with data as sensitive as the one we have, we would like to have the highest accuracy. 
+The accuracy with the selected features is fairly high, but with data as sensitive as the one we have, we would like to have the highest accuracy. 
 ```{r}
 accuracy = mean(predicted == actual)
 round(accuracy, 4)
 ```
 
 
-Here we can see that the first model based on the precision we can see that all our prediction with cancer were correct. As for our recall, we can see that the model predicted both items correctly seventy-five percent of the time.
+This precision value shows that, from the first model, all our prediction with cancer were correct. As for our recall, we can see that the model predicted both items correctly seventy-five percent of the time.
 ```{r}
 # precision = true positives / (true positives + false positives)
 precision = TP/(TP+FP)
@@ -393,7 +393,7 @@ paste("recall:", round(recall, 3))
 
 ```
 
-The double density plot shows that all the predictions for cancer were correct but there is a margin of error when the no cancer prediction shows.
+The double density plot shows that all the predictions for cancer were correct, but there is a margin of error when the no cancer prediction shows.
 ```{r}
 plot(density(as.numeric(predicted[actual == "cancer"])), main = "Prediction Double Density Plot", xlab="Decision Tree Output", col="red", ylim=range(0:3))
 lines(density(as.numeric(predicted[actual == "no cancer"])), col="blue")
@@ -402,7 +402,7 @@ legend(1.3,2, c("Cancer", "No Cancer"),col=c("red", "blue"), inset=0.05, lty=1, 
 
 ## Model 2
 
-Although the Naive Bayes classification does not guarantee that an incremented amount of features will improve the classifier it could make better predictions if useful features are in use. 
+Although the Naive Bayes classification does not guarantee that an incremented amount of features will improve the classifier, it could make better predictions if useful features are in use. 
 ```{r}
 fit = naiveBayes(cancer_factor ~ ., data = tr_dat)
 print(fit$tables$invasive.bc)
@@ -454,12 +454,12 @@ legend(1.3,2, c("Cancer", "No Cancer"),col=c("red", "blue"), inset=0.05, lty=1, 
 
 ## Model 3
 
-In this last model, the feature invasive breast cancer is removed to see the prediction of breast cancer not taking under consideration previous conditions.
+In this last model, the feature, invasive breast cancer, is removed to see the prediction of breast cancer not taking under consideration previous conditions.
 ```{r}
 fit = naiveBayes(cancer_factor ~ age.group + last.mammogram + age.first.birth + race, data = tr_dat)
 ```
 
-## Analyzing Model 2
+## Analyzing Model 3
 
 From this new confusion matrix, the results are the same as the previous model.
 ```{r}
@@ -495,4 +495,4 @@ paste("recall:", round(recall, 3))
 ```
 
 ## Conclusion
-Based on the results of our data, the feature of having invasive cancer demonstrated to have the most prevalence towards predicting if a patient has cancer. Other features of the data were shown to produce more errors on both testing and training data, thus lowering the overall accuracy, precision, and recall towards diagnosing a patient. Through both the Naive Bayes classifier and the Classification Tree, the data illustrates the unfortunate outcome that if a patient has had invasive cancer in the past year the likelihood of breast cancer increases. This shows that the initial hypothesis is wrong because from all the features we selected only one plays a role when it comes to predicting breast cancer.
+Based on the results of our data, the feature of having invasive cancer demonstrates to have the most prevalence towards predicting if a patient has cancer. Other features of the data were shown to produce more errors on both testing and training data, thus lowering the overall accuracy, precision, and recall towards diagnosing a patient. Through both the Naive Bayes classifier and the Classification Tree, the data illustrates the unfortunate outcome that if a patient has had invasive cancer in the past year, the likelihood of breast cancer increases. This shows that the initial hypothesis is wrong because from all the features we selected, only one plays a role when it comes to predicting breast cancer.
